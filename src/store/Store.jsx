@@ -41,8 +41,13 @@ const zStore = create((set, get) => ({
 
   addNode: (newNode) => {
     const currentNodes = get().nodes;
-    set({ nodes: [...currentNodes, newNode] });
+    const newNodeWithCustomID = {
+      ...newNode,
+      customID: newNode.id // or another value as needed
+    };
+    set({ nodes: [...currentNodes, newNodeWithCustomID] });
   },
+
 
   onNodesChange: (changes) => {
     set({
@@ -52,9 +57,9 @@ const zStore = create((set, get) => ({
 
   updateNodeData: (nodeId, newData) => {
     set((state) => {
-      const nodeIndex = state.nodes.findIndex((n) => n.id === nodeId);
+      const nodeIndex = state.nodes.findIndex((n) => n.id === nodeId || n.data.customID === nodeId);
       if (nodeIndex === -1) return;
-  
+      
       const updatedNodes = state.nodes.map((node, index) => {
         if (index === nodeIndex) {
           return {
@@ -64,11 +69,9 @@ const zStore = create((set, get) => ({
         }
         return node;
       });
-  
       return { nodes: updatedNodes };
     });
   },
-  
 
   onEdgesChange: (changes) => {
     set({
@@ -79,13 +82,15 @@ const zStore = create((set, get) => ({
   onConnect: (connection) => {
     const { sourceHandle } = connection;
     const { stroke } = getEdgeStyle(sourceHandle);
-
+    const sourceNode = get().nodes.find(n => n.id === connection.source);
+    const targetNode = get().nodes.find(n => n.id === connection.target);
+  
     const newEdge = {
       ...connection,
+      id: `e${sourceNode.data.customID}-${targetNode.data.customID}`, // Use customID for edge id
       className: 'animated',
       style: { stroke: stroke },
     };
-
     set((state) => ({
       edges: addEdge(newEdge, state.edges),
     }));

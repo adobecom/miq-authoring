@@ -10,11 +10,14 @@ import zStore from '../../../store/Store.jsx';
 
 const QuestionNode = memo(({ id, data, isConnectable }) => {
 
+    // console.log(data, 'data in QuestionNode');
+
     const updateNodeData = zStore((state) =>  state.updateNodeData);
 
     const onInputChange = (fieldName) => (event) => {
         console.log('onInputChange happening');
         const value = event.target.value;
+        // console.log('value', value);
         updateNodeData(id, { [fieldName]: value });
     };
     
@@ -23,12 +26,12 @@ const QuestionNode = memo(({ id, data, isConnectable }) => {
             <div className="question">
                 <Handle type="target" position={Position.Left} style={{ visibility: 'hidden' }} isConnectable={isConnectable} />
                 <div style={{ height: '370px', width: '400px', padding: '20px', background: 'rgb(29, 29, 29, 0.8)', border: '1px solid #rgb(29, 29, 29)', borderRadius: '15px', display: 'grid' }}>
-                    <h3 className="spectrum-Heading spectrum-Heading--sizeM">Question </h3>
+                    <h3 className="spectrum-Heading spectrum-Heading--sizeM">Question {data.customID} </h3>
                     <div className="spectrum-Form-item">
                         <sp-field-label class="spectrum-FieldLabel spectrum-FieldLabel--sizeM spectrum-Form-itemLabel spectrum-FieldLabel--right" for="node-q-id">Question ID</sp-field-label>
                         <div className="spectrum-Form-itemField">
                             <div className="spectrum-Textfield">
-                                <sp-textfield id="node-q-id" placeholder="q-photo" value={id} onInput={onInputChange('id')}></sp-textfield>
+                            <sp-textfield id="node-custom-id" placeholder="Custom ID" value={data.customID || ''} onInput={onInputChange('customID')}></sp-textfield>
                             </div>
                         </div>
                     </div>
@@ -73,7 +76,7 @@ const QuestionNode = memo(({ id, data, isConnectable }) => {
                         <div className="spectrum-Form-itemField">
                             <div className="spectrum-Stepper">
                                 <div className="spectrum-Textfield spectrum-Stepper-textfield">
-                                    <sp-number-field value={data.minxSelections || "1"} label="Size" size="m" style={{ "--spectrum-stepper-width": "110px" }} onInput={onInputChange('minSelection')}></sp-number-field>
+                                    <sp-number-field value={data.minSelections || "1"} label="Size" size="m" style={{ "--spectrum-stepper-width": "110px" }} onInput={onInputChange('minSelection')}></sp-number-field>
                                 </div>
                             </div>
                         </div>
