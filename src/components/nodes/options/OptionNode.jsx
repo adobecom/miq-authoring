@@ -3,6 +3,7 @@ import { Handle, Position } from 'reactflow';
 import zStore from '../../../store/Store.jsx';
 
 const OptionNode = ({ id, data, setNodes, setEdges, isConnectable }) => {
+    // console.log(data, 'data in OptionNode');
     const handleNodeIdChange = (event, nodeId) => {
         const newId = event.target.value;
         setNodes((prevNodes) => prevNodes.map(node => node.id === nodeId ? { ...node, id: newId } : node));

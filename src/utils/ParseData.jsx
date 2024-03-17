@@ -1,20 +1,26 @@
 const parseData = (questionsData, stringsData) => {
     const nodes = [];
     const edges = [];
-
     questionsData.questions.data.forEach(question => {
         const questionStringData = stringsData.questions.data.find(q => q.q === question.questions);
+        if (!questionStringData) {
+            console.error(`No string data found for question ID: ${question.questions}`);
+            // Handle the missing data appropriately, perhaps skip this iteration
+            return;
+        }
         const questionNode = {
-            id: question.questions,
+            id: question.questions, // Ensure this ID is the one you want to use
+            customID: question.questions,
             type: 'question',
             data: {
-                label: questionStringData.heading,
-                subtitle: questionStringData['sub-head'],
-                btnLabel: questionStringData.btn,
+                customID: question.questions,
+                label: questionStringData.heading, // Assuming 'heading' is correct
+                subtitle: questionStringData['sub-head'], // Check for correct property name
+                btnLabel: questionStringData.btn, // And so on...
                 backgroundImage: questionStringData.background,
                 footerFragment: questionStringData.footerFragment,
-                minSelections: question['min-selections'],
-                maxSelections: question['max-selections']
+                minSelections: question['min-selections'], // Ensure these properties exist
+                maxSelections: question['max-selections'] // in your questionsData
             },
             position: { x: 100, y: 100 }
         };
