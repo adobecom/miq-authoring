@@ -1,61 +1,22 @@
-import { useEffect, useState } from "react";
-import { fetchResultsJson, performValidations } from "../../utils/utils";
-import zStore from "../../store/Store";
+import React from 'react';
 
-const ValidateQuestions = ({ site }) => {
-  const [validations, setValidations] = useState(zStore((state) => state.validationResults));
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const processAndFetchData = async () => {
-      try {
-        // reset the state
-        setLoading(true);
-
-        const questionsData = await fetchResultsJson(site + "questions.json");
-        const stringsData = await fetchResultsJson(site + "strings.json");
-        const resultsData = await fetchResultsJson(site + "results.json");
-
-        if (questionsData && stringsData && resultsData) {
-          setValidations(
-            performValidations(questionsData, stringsData, resultsData)
-          );
-        }
-      } catch (error) {
-        console.error("Error processing URL data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    processAndFetchData();
-  }, [site]);
-
-  return (
-    <div>
-      {loading ? (
-        <div>Loading...</div>
-      ) : validations?.length > 0 ? (
+const ValidateQuesions = ({ validations }) => {
+    return (
         <div>
-          {validations.map((validation, index) => (
-            <div
-              key={index}
-              className={`spectrum-InLineAlert spectrum-InLineAlert--${validation.severity}`}
-            >
-              <div className="spectrum-InLineAlert-header">
-                {validation.heading}
-              </div>
-              <div className="spectrum-InLineAlert-content">
-                {validation.body}
-              </div>
-            </div>
-          ))}
+            <h2>Quiz Validation</h2>
+            {validations.map((validation, index) => (
+                <div key={index} className={`spectrum-InLineAlert spectrum-InLineAlert--${validation.type}`}>
+                    <div className="spectrum-InLineAlert-header">
+                        {validation.title}
+                        <svg className="spectrum-Icon spectrum-Icon--sizeM spectrum-InLineAlert-icon" focusable="false" aria-hidden="true">
+                            <use xlinkHref={`#spectrum-icon-18-${validation.icon}`} />
+                        </svg>
+                    </div>
+                    <div className="spectrum-InLineAlert-content">{validation.message}</div>
+                </div>
+            ))}
         </div>
-      ) : (
-        <div>No data found.</div>
-      )}
-    </div>
-  );
-};
+    )
+}
 
-export default ValidateQuestions;
+export default ValidateQuesions;
