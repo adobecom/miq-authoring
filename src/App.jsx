@@ -15,7 +15,7 @@ import {
   Link
 } from "react-router-dom";
 import QuizResults from './components/pages/QuizResults';
-import zStore from './store/Store';
+import myUseStore from './store/Store';
 import { shallow } from 'zustand/shallow';
 import parseData from './utils/ParseData';
 import '@spectrum-web-components/top-nav/sp-top-nav.js';
@@ -44,7 +44,7 @@ import '@spectrum-css/textfield/dist/index.css';
 import '@spectrum-css/textfield/dist/index-vars.css';
 import 'reactflow/dist/style.css';
 import Debugger from './components/pages/Debugger';
-import { performValidations } from './utils/utils';
+import { performValidations, performValidationResults } from './utils/utils';
 
 let id = 1;
 const getId = () => `node${id++}`;
@@ -108,7 +108,7 @@ const QuizEditor = () => {
     onConnect,
     setNodes,
     setEdges,
-  } = zStore(state => ({
+  } = myUseStore(state => ({
     nodes: state.nodes,
     edges: state.edges,
     onNodesChange: state.onNodesChange,
@@ -132,10 +132,12 @@ const QuizEditor = () => {
       const questionsData = await fetchFile(importBaseUrl, 'questions.json');
       const stringsData = await fetchFile(importBaseUrl, 'strings.json');
       const resultsData = await fetchFile(importBaseUrl, 'results.json');
-
-      zStore.getState().setData(stringsData, questionsData, resultsData);
+      myUseStore.getState().setData(stringsData, questionsData, resultsData);
       const validationResults = performValidations(questionsData, stringsData);
-      zStore.getState().setValidationResults(validationResults);
+      myUseStore.getState().setValidationResults(validationResults);
+
+      const validationQuizResults = performValidationResults(questionsData, stringsData, resultsData);
+      myUseStore.getState().setValidationQuizResults(validationQuizResults);
       
       const { nodes: importedNodes, edges: importedEdges } = parseData(questionsData, stringsData);
       const layoutedNodes = layoutGraph(importedNodes, importedEdges);
@@ -145,11 +147,8 @@ const QuizEditor = () => {
       setNodes(layoutedNodes);
       setEdges(importedEdges);
 
-      zStore.getState().setResultsData(resultsData);
-      zStore.getState().setBaseUrl(importBaseUrl);
-
-      // console.log('imported nodes', importedNodes);
-      // console.log('imported edges', importedEdges);
+      myUseStore.getState().setResultsData(resultsData);
+      myUseStore.getState().setBaseUrl(importBaseUrl);
 
     } catch (error) {
       console.error('Error importing data:', error);
@@ -253,10 +252,10 @@ const QuizEditor = () => {
             target: newId,
             sourceHandle: connectingHandleId.current,
             className: '',
-            style: { stroke: zStore.getState().getEdgeStyle(connectingHandleId.current).stroke }
+            style: { stroke: myUseStore.getState().getEdgeStyle(connectingHandleId.current).stroke }
           };
-          zStore.getState().addNode(newNode);
-          zStore.getState().onConnect(newEdge);
+          myUseStore.getState().addNode(newNode);
+          myUseStore.getState().onConnect(newEdge);
         }
       }
     },
@@ -271,7 +270,7 @@ const QuizEditor = () => {
       data: { label: `Question ${newId}`, product1: '', product2: '' },
       position: { x: id * 450, y: 100 },
     };
-    zStore.getState().addNode(newNode);
+    myUseStore.getState().addNode(newNode);
   };
 
 
@@ -296,120 +295,79 @@ const QuizEditor = () => {
     for (let i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
     return buf;
   };
-
-  const exportData = () => {
-    const { nodes, edges } = zStore.getState();
-    // console.log('exported nodes', nodes);
-    // console.log('exported edges', edges);
-    function createDynamicResultsJsonStructure(questionKeys, resultFragmentsKeys, resultDestinationKeys) {
-      const createDataEntry = (keys) => keys.reduce((acc, key) => ({ ...acc, [key]: "" }), {});
   
-      return {
-        "helix-result": {
-          "data": Array(nodes.filter(node => node.type === 'question').length).fill().map(() => ({
-        ...createDataEntry(questionKeys),
-        "result-primary": "",
-        "result-secondary": ""
-          }))
-        },
-        "helix-result-fragments": {
-          "data": Array(resultFragmentsKeys.length).fill().map(() => createDataEntry(resultFragmentsKeys))
-        },
-        "helix-result-destination": {
-          "data": Array(resultDestinationKeys.length).fill().map(() => createDataEntry(resultDestinationKeys))
-        },
-        ":names": [
-          "helix-result",
-          "helix-result-fragments",
-          "helix-result-destination"
-        ],
-        ":type": "multi-sheet"
-      };
-    }
-    const questionKeys = nodes.filter(node => node.type === 'question').map(node => node.data.customID);
-    // console.log('questionKeys', questionKeys);
-
-    const resultFragmentsKeys = ["product", "marquee", "card-list", "commerce-card", "marquee-product-single", "marquee-product-cc", "master-plan", "learn", "value-prop", "check-bullet", "media", "templates"];
-    const resultDestinationKeys = ["result", "umbrella-result", "url", "basic-fragments", "nested-fragments-primary", "nested-fragments-secondary"];
-    const resultsJsonStructure = createDynamicResultsJsonStructure(questionKeys, resultFragmentsKeys, resultDestinationKeys);
-
+  const exportData = () => {
+    const { nodes, edges } = myUseStore.getState();
+  
     const questionsData = generateQuestionsData(nodes, edges);
     const stringsData = generateStringsData(nodes, edges);
-
-    // console.log('questionsData', questionsData);
-    // console.log('stringsData', stringsData);
-    // console.log('resultsJsonStructure', resultsJsonStructure);
-
+  
     convertJsonToXlsx(questionsData, 'questions.xlsx');
     convertJsonToXlsx(stringsData, 'strings.xlsx');
-    convertJsonToXlsx(resultsJsonStructure, 'results.xlsx');
   };
+  
   const generateQuestionsData = (nodes, edges) => {
     const questionsSummary = nodes.filter(node => node.type === 'question').map(qNode => ({
-        questions: qNode.data.customID, // Assuming customID is part of the data object
-        "min-selections": qNode.data.minSelection ?? "1",
-        "max-selections": qNode.data.maxSelections ?? "1"
-    }));
-    
-    const questionsData = {
-        questions: {
-            total: questionsSummary.length,
-            offset: 0,
-            limit: questionsSummary.length,
-            data: questionsSummary
-        }
-    };
-
-    nodes.filter(n => n.type === 'question').forEach(qNode => {
-        const qKey = qNode.data.customID; // Assuming customID is part of the data object
-        questionsData[qKey] = {
-            total: edges.filter(e => e.source === qNode.id).length, // Ensure this references the node's internal ID as it's used in the edges array
-            offset: 0,
-            limit: edges.filter(e => e.source === qNode.id).length,
-            data: edges.filter(e => e.source === qNode.id).map(e => ({
-                options: e.target,
-                next: nodes.find(n => n.id === e.target)?.data.next || "RESULT",
-            }))
-        };
-    });
-
-    return questionsData;
-};
-  const generateStringsData = (nodes, edges) => {
-    // Mapping over all nodes of type 'question' to create the data structure for strings
-    const stringsSummary = nodes.filter(node => node.type === 'question').map(qNode => ({
-      q: qNode.data.customID, // Assuming customID is what you want to display in the 'q' column
-      heading: qNode.data.label,
-      "sub-head": qNode.data.subtitle,
-      btn: qNode.data.btnLabel,
-      background: qNode.data.backgroundImage,
-      footerFragment: qNode.data.footerFragment
+      questions: qNode.id,
+      "max-selections": qNode.data.maxSelections ?? "1",
+      "min-selections": qNode.data.minSelections ?? "1"
     }));
   
-    const stringsData = {
+    const questionsData = {
       questions: {
-        total: stringsSummary.length,
+        total: questionsSummary.length,
         offset: 0,
-        limit: stringsSummary.length,
-        data: stringsSummary
+        limit: questionsSummary.length,
+        data: questionsSummary
       }
     };
   
     nodes.filter(n => n.type === 'question').forEach(qNode => {
-      const optionsData = edges.filter(e => nodes.find(n => n.data.customID === qNode.data.customID)?.id === e.source);
-      stringsData[qNode.data.customID] = {
-        total: optionsData.length,
+      questionsData[qNode.id] = {
+        total: edges.filter(e => e.source === qNode.id).length,
         offset: 0,
-        limit: optionsData.length,
-        data: optionsData.map(edge => {
+        limit: edges.filter(e => e.source === qNode.id).length,
+        data: edges.filter(e => e.source === qNode.id).map(e => ({
+          options: e.target,
+          next: nodes.find(n => n.id === e.target)?.data.next || "RESULT",
+        }))
+      };
+    });
+  
+    return questionsData;
+
+  };
+
+  const generateStringsData = (nodes, edges) => {
+    const stringsData = {
+      questions: {
+        total: nodes.filter(n => n.type === 'question').length,
+        offset: 0,
+        limit: nodes.filter(n => n.type === 'question').length,
+        data: nodes.filter(n => n.type === 'question').map(qNode => ({
+          q: qNode.id,
+          heading: qNode.data.label,
+          "sub-head": qNode.data.subtitle,
+          btn: qNode.data.btnLabel,
+          background: qNode.data.backgroundImage,
+          footerFragment: qNode.data.footerFragment
+        }))
+      }
+    };
+  
+    nodes.filter(n => n.type === 'question').forEach(qNode => {
+      stringsData[qNode.id] = {
+        total: edges.filter(e => e.source === qNode.id).length,
+        offset: 0,
+        limit: edges.filter(e => e.source === qNode.id).length,
+        data: edges.filter(e => e.source === qNode.id).map(edge => {
           const targetNode = nodes.find(n => n.id === edge.target);
-          // Ensure we're getting the right properties from the targetNode
           return {
-            options: targetNode.data.customID || edge.target, // Fallback to edge target ID if customID is not present
-            title: targetNode.data.label || '',
-            text: targetNode.data.text || '',
-            icon: targetNode.data.icon || '',
-            image: targetNode.data.image || ''
+            options: edge.target,
+            title: targetNode.data.label,
+            text: targetNode.data.text,
+            icon: targetNode.data.icon,
+            image: targetNode.data.image
           };
         })
       };
@@ -418,7 +376,7 @@ const QuizEditor = () => {
     return stringsData;
   };
 
-  const resultsData = zStore(state => state.resultsData);
+  const resultsData = myUseStore(state => state.resultsData);
 
   return (
     <div className="wrapper flex" ref={reactFlowWrapper} style={{ height: '100vh' }}>

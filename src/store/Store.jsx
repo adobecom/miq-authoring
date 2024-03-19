@@ -31,6 +31,7 @@ const zStore = create((set, get) => ({
   setData: ({ stringsData, questionsData, newResultsData }) => set(() => ({ stringsData, questionsData, newResultsData })),
   setResultsData: (newResultsData) => set(() => ({ resultsData: newResultsData })),
   setValidationResults: (newValidationResults) => set(() => ({ validationResults: newValidationResults })), 
+  setValidationQuizResults: (newValidationQuizResults) => set(() => ({ validationQuizResults: newValidationQuizResults })), 
   
   setNodes: (newNodes) => set({ nodes: newNodes }),
   setEdges: (newEdges) => set({ edges: newEdges }),
@@ -41,13 +42,8 @@ const zStore = create((set, get) => ({
 
   addNode: (newNode) => {
     const currentNodes = get().nodes;
-    const newNodeWithCustomID = {
-      ...newNode,
-      customID: newNode.id // or another value as needed
-    };
-    set({ nodes: [...currentNodes, newNodeWithCustomID] });
+    set({ nodes: [...currentNodes, newNode] });
   },
-
 
   onNodesChange: (changes) => {
     set({
@@ -57,9 +53,9 @@ const zStore = create((set, get) => ({
 
   updateNodeData: (nodeId, newData) => {
     set((state) => {
-      const nodeIndex = state.nodes.findIndex((n) => n.id === nodeId || n.data.customID === nodeId);
+      const nodeIndex = state.nodes.findIndex((n) => n.id === nodeId);
       if (nodeIndex === -1) return;
-      
+  
       const updatedNodes = state.nodes.map((node, index) => {
         if (index === nodeIndex) {
           return {
@@ -69,9 +65,11 @@ const zStore = create((set, get) => ({
         }
         return node;
       });
+  
       return { nodes: updatedNodes };
     });
   },
+  
 
   onEdgesChange: (changes) => {
     set({
@@ -82,15 +80,13 @@ const zStore = create((set, get) => ({
   onConnect: (connection) => {
     const { sourceHandle } = connection;
     const { stroke } = getEdgeStyle(sourceHandle);
-    const sourceNode = get().nodes.find(n => n.id === connection.source);
-    const targetNode = get().nodes.find(n => n.id === connection.target);
-  
+
     const newEdge = {
       ...connection,
-      id: `e${sourceNode.data.customID}-${targetNode.data.customID}`, // Use customID for edge id
       className: 'animated',
       style: { stroke: stroke },
     };
+
     set((state) => ({
       edges: addEdge(newEdge, state.edges),
     }));
