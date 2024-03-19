@@ -114,7 +114,7 @@ export async function handleResults(results, sheetName, resultsPath) {
     // }
 
     // If the resultsPath includes 'www.adobe.com', fetch the headers for the URLs
-    const statusResults2 = [];
+    const statusResultsAcom = [];
     for (const url of uniqueUrls) {
       const result = {};
       const result1 = await fetchHeaders(url);
@@ -143,9 +143,9 @@ export async function handleResults(results, sheetName, resultsPath) {
         result['last-modified'] = result1['last-modified'];
       }
 
-      statusResults2.push(result);
+      statusResultsAcom.push(result);
     }
-    statusResults.push(...statusResults2);
+    statusResults.push(...statusResultsAcom);
 
     return statusResults.sort((a, b) => b.status - a.status);
   }
