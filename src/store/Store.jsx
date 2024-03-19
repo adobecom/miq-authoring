@@ -31,6 +31,7 @@ const zStore = create((set, get) => ({
   setData: ({ stringsData, questionsData, newResultsData }) => set(() => ({ stringsData, questionsData, newResultsData })),
   setResultsData: (newResultsData) => set(() => ({ resultsData: newResultsData })),
   setValidationResults: (newValidationResults) => set(() => ({ validationResults: newValidationResults })), 
+  setValidationQuizResults: (newValidationQuizResults) => set(() => ({ validationQuizResults: newValidationQuizResults })), 
   
   setNodes: (newNodes) => set({ nodes: newNodes }),
   setEdges: (newEdges) => set({ edges: newEdges }),

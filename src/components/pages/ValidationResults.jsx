@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { fetchResultsJson, performValidations } from "../../utils/utils";
+import { fetchResultsJson, performValidationResults } from "../../utils/utils";
 import zStore from "../../store/Store";
 
-const ValidateQuestions = ({ site }) => {
-  const [validations, setValidations] = useState(zStore((state) => state.validationResults));
+const ValidateResults = ({ site }) => {
+  const [validations, setValidations] = useState(zStore((state) => state.validationQuizResults));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ const ValidateQuestions = ({ site }) => {
 
         if (questionsData && stringsData && resultsData) {
           setValidations(
-            performValidations(questionsData, stringsData, resultsData)
+            performValidationResults(questionsData, stringsData, resultsData)
           );
         }
       } catch (error) {
@@ -58,4 +58,4 @@ const ValidateQuestions = ({ site }) => {
   );
 };
 
-export default ValidateQuestions;
+export default ValidateResults;

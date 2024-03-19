@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchResultsJson, handleResults } from '../../utils/utils';
 
-const UrlsChecker = ({ resultsPath }) => {
+const UrlsChecker = ({ site }) => {
   const [urlData, setUrlData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [destinationUrlData, setDestinationUrlData] = useState([]);
@@ -13,16 +13,18 @@ const UrlsChecker = ({ resultsPath }) => {
         setLoading(true);
 
         // Fetch the results.json file
-        const results = await fetchResultsJson(resultsPath + "results.json");
+        const results = await fetchResultsJson(site + "results.json");
 
-        // Process the results and fetch the URL data for results-fragments
-        const data = await handleResults(results, 'result-fragments', resultsPath);
-        // Sort URLs by status and set the state
-        setUrlData(data);
+        if (results) {
+          // Process the results and fetch the URL data for results-fragments
+          const data = await handleResults(results, 'result-fragments', site);
+          // Sort URLs by status and set the state
+          setUrlData(data);
 
-        // Process the results and fetch the URL data for results-destination
-        const data2 = await handleResults(results, 'result-destination', resultsPath);
-        setDestinationUrlData(data2);
+          // Process the results and fetch the URL data for results-destination
+          const data2 = await handleResults(results, 'result-destination', site);
+          setDestinationUrlData(data2);
+        }
 
       } catch (error) {
         console.error("Error processing URL data:", error);
@@ -32,7 +34,7 @@ const UrlsChecker = ({ resultsPath }) => {
     };
 
     processAndFetchData();
-  }, [resultsPath]);
+  }, [site]);
 
   return (
     <div>
