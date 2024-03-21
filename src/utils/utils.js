@@ -118,13 +118,12 @@ export async function handleResults(results, sheetName, resultsPath) {
     for (const url of uniqueUrls) {
       const result = {};
       const result1 = await fetchHeaders(url);
-      if (sheetName !== 'result-destination' && (resultsPath.includes('www.adobe.com') || resultsPath.includes('www.stage.adobe.com'))) {
+      if (sheetName !== 'result-destination' && (resultsPath.includes('www.adobe.com'))) {
         let urlLive = '';
         if (resultsPath.includes('www.adobe.com')) {
           urlLive = url.replace('www.adobe.com', 'main--cc--adobecom.hlx.live');
-        } else {
-          urlLive = url.replace('www.stage.adobe.com', 'main--cc--adobecom.hlx.live');
         }
+        
         const result2 = await fetchHeaders(urlLive);
         if (result1 && result2) {
           result['url'] = url;
