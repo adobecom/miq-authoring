@@ -18,7 +18,7 @@ const Debugger = () => {
 
     if (selectElement) {
       Array.from(selectElement.options).forEach((option) => {
-        if (option.value === value &&  option.text === text) {
+        if (option.value === value &&  option.text.includes(text)) {
           optionExists = true;
         }
       });
@@ -41,6 +41,12 @@ const Debugger = () => {
         if (selectElement) {
           selectElement.appendChild(option);
         }
+      } else {
+        const selectElement = document.querySelector('#websites');
+        const indexToBeUpdated = Array.from(selectElement.options).findIndex((option) => 
+          option.value === baseUrl && option.text.includes(baseUrl)
+        );
+        selectElement.options[indexToBeUpdated].selected = true;
       }
     } else {
       if (!isOptionExisting('#websites', '-- No Import Data, Please choose an option --', '-- No Import Data, Please choose an option --')) {
