@@ -6,6 +6,7 @@ import myUseStore from '../../store/Store';
 
 const QuizResults = () => {
   const resultsData = myUseStore(state => state.resultsData);
+  if (!resultsData) return (<div style={{ padding: '1rem' }}>No results found. Please import a quiz to see results here.</div> );
   const { result, 'result-fragments': resultFragments, 'result-destination': resultDestination } = resultsData;
   return (
     <div style={{ padding: '1rem' }}>

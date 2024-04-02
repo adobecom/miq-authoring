@@ -435,7 +435,7 @@ const QuizEditor = () => {
           <div className="wrapper flex" style={{ height: '100vh' }}>
             <div className="main-body">
               <sp-top-nav class="top-nav">
-                <Link to="/">
+                <Link to="/miq-authoring">
                   <sp-top-nav-item>
                     Visual Authoring
                   </sp-top-nav-item>
@@ -455,7 +455,7 @@ const QuizEditor = () => {
               <Routes>
                 <Route path="/quiz-results" element={<QuizResults resultsData={resultsData} />} />
                 <Route path="/debugger" element={<Debugger />} />
-                <Route path="/" element={
+                <Route path="/miq-authoring" element={
                   <ReactFlow
                     nodes={nodes}
                     edges={edges}

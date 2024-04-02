@@ -1,6 +1,9 @@
 aside {
     padding: 0 20px;
 }
+aside .heading a {
+    display: flex;;
+}
 .spectrum-Button {
     margin: 10px 0 0 0 !important;
 }
